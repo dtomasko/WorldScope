@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0" />
+<meta author="Dominik Tomaško" />
+  <title>WorldScope</title>
+  <meta name="description" content="WorldScope — explore, compare and visualize data for 250+ countries. Population, GDP, languages, currencies, and more. Powered by live data." />
+<meta name="keywords" content="world map, country data, country comparison, population statistics, GDP by country, world explorer, geography, nations, flags" />
+<meta name="author" content="WorldScope" />
+<meta name="robots" content="index, follow" />
+
+
+<link rel="icon" type="image/png" href="earth_icon2.png" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Outfit', 'sans-serif'],
+            body: ['Inter', 'sans-serif'],
+          },
+          maxWidth: { layout: '1280px' },
+        }
+      }
+    }
+  </script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg0:    #07090f;
+      --bg1:    #0b0f1a;
+      --bg2:    #0f1525;
+      --bg3:    #141c2e;
+      --bg4:    #1a2338;
+      --line:   rgba(255,255,255,0.06);
+      --line2:  rgba(255,255,255,0.10);
+      --accent: #4d7cfe;
+      --accent2:#7fa4ff;
+      --text0:  #f0f4ff;
+      --text1:  #b8c5e0;
+      --text2:  #6b80a0;
+      --text3:  #3a4f6e;
+      --green:  #34d399;
+      --red:    #f87171;
+    }
+
+    html { scroll-behavior: smooth;  }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg0);
+      color: var(--text0);
+      min-height: 100vh;
+      
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    ::-webkit-scrollbar { width: 3px; height: 3px; }
+    ::-webkit-scrollbar-track { background: var(--bg0); }
+    ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 99px; }
+    ::selection { background: rgba(77,124,254,0.25); }
+    * { -webkit-tap-highlight-color: transparent; }
+
+    .font-display { font-family: 'Outfit', sans-serif; }
+
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+
+    .card-hover:hover {
+      border-color: var(--line2);
+      background: var(--bg3);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 99px;
+      border: 1px solid var(--line2);
+      background: var(--bg3);
+      color: var(--text1);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 180ms ease;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .pill:hover {
+      border-color: rgba(77,124,254,0.4);
+      color: var(--text0);
+      background: var(--bg4);
+    }
+    .pill.active {
+      background: rgba(77,124,254,0.15);
+      border-color: rgba(77,124,254,0.4);
+      color: #7fa4ff;
+    }
+
+    .stat-card {
+      background: var(--bg3);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px 16px;
+      transition: border-color 180ms ease;
+    }
+    .stat-card:hover { border-color: var(--line2); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to   { transform: translateX(0);    opacity: 1; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    .animate-fade-up  { animation: fadeUp  320ms ease forwards; }
+    .animate-slide-in { animation: slideIn 280ms cubic-bezier(0.16,1,0.3,1) forwards; }
+    .animate-fade-in  { animation: fadeIn  200ms ease forwards; }
+
+    input[type="text"], select {
+      background: var(--bg2) !important;
+      color: var(--text0) !important;
+      border: 1px solid var(--line2) !important;
+      border-radius: 8px;
+      outline: none;
+      font-family: 'Inter', sans-serif;
+    }
+    input[type="text"]::placeholder { color: var(--text3) !important; }
+    input[type="text"]:focus { border-color: rgba(77,124,254,0.5) !important; box-shadow: 0 0 0 3px rgba(77,124,254,0.08); }
+    select:focus { border-color: rgba(77,124,254,0.5) !important; }
+    select option { background: #0f1525; color: #f0f4ff; }
+
+.bg-white, [class*="bg-white"] { background: var(--bg2) !important; }
+.bg-gray-50 { background: var(--bg3) !important; }
+.bg-gray-100 { background: var(--bg4) !important; }
+.border-gray-100 { border-color: var(--line) !important; }
+.border-gray-200 { border-color: var(--line2) !important; }
+.text-gray-900 { color: var(--text0) !important; }
+.text-gray-800 { color: var(--text0) !important; }
+.text-gray-700 { color: var(--text1) !important; }
+.text-gray-600 { color: var(--text2) !important; }
+.text-gray-500 { color: var(--text2) !important; }
+.text-gray-400 { color: var(--text3) !important; }
+.text-gray-300 { color: var(--text3) !important; }
+.divide-gray-50 > * + * { border-color: var(--line) !important; }
+.shadow-card { box-shadow: 0 4px 32px rgba(0,0,0,0.6) !important; }
+.hover\:bg-indigo-50:hover, .bg-indigo-50 { background: rgba(77,124,254,0.08) !important; }
+.text-accent, .hover\:text-accent:hover { color: #4d7cfe !important; }
+.border-accent { border-color: rgba(77,124,254,0.3) !important; }
+.rounded-card { border-radius: 12px !important; }
+select option { background: #0f1525; }
+h1, h2, h3 { letter-spacing: -0.3px; }
+html { font-size: 16px; }
+body { font-size: 16px; min-width: 320px; }
+
+@media (min-width: 768px) {
+  html { font-size: 17px; }
+}
+@media (min-width: 769px) {
+  html {
+    zoom: 1.1;
+  }
+}
+@media (max-width: 768px) {
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+.icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; color: inherit; }
+@media (max-width: 640px) {
+  body { overflow-x: hidden; }
+  button { min-height: 44px; }
+  .country-panel-mobile {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+  .map-container { height: 320px !important; }
+  .hero-stats { flex-direction: column !important; align-items: stretch !important; }
+  .mobile-px { padding-left: 14px !important; padding-right: 14px !important; }
+}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" src="src/hooks/useCountries.js"></script>
+  <script type="text/babel" src="src/hooks/useWikipedia.js"></script>
+  <script type="text/babel" src="src/hooks/useWorldBank.js"></script>
+  <script type="text/babel" src="src/hooks/useExchangeRate.js"></script>
+  <script type="text/babel" src="src/components/Navbar.jsx"></script>
+  <script type="text/babel" src="src/components/Hero.jsx"></script>
+  <script type="text/babel" src="src/components/TabBar.jsx"></script>
+  <script type="text/babel" src="src/components/MiniChart.jsx"></script>
+  <script type="text/babel" src="src/components/WorldMap.jsx"></script>
+  <script type="text/babel" src="src/components/CountryPanel.jsx"></script>
+  <script type="text/babel" src="src/components/CompareView.jsx"></script>
+  <script type="text/babel" src="src/components/Leaderboard.jsx"></script>
+  <script type="text/babel" src="src/app.jsx"></script>
+</body>
+</html>
