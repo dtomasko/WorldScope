@@ -9,9 +9,47 @@
 <meta name="keywords" content="world map, country data, country comparison, population statistics, GDP by country, world explorer, geography, nations, flags" />
 <meta name="author" content="Dominik Tomaško" />
 <meta name="robots" content="index, follow" />
+<meta property="og:title" content="WorldScope — Compare & Visualize Country Data">
+<meta property="og:description" content="WorldScope — explore, compare and visualize data for 250+ countries. Population, GDP, languages, currencies, and more. Powered by live data.">
+<meta property="og:image" content="https://worldscope-countries.netlify.app/preview.png">
+<meta property="og:url" content="https://worldscope-countries.netlify.app/">
+<meta property="og:type" content="website">
 
 
 <link rel="icon" type="image/png" href="earth_icon2.png" />
+<link rel="canonical" href="https://worldscope-countries.netlify.app/">
+
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "WebSite",
+ "name": "WorldScope",
+ "url": "https://worldscope-countries.netlify.app/",
+ "description": "Explore and compare data for 250+ countries including population, GDP, languages, currencies and more.",
+ "author": {
+   "@type": "Person",
+   "name": "Dominik Tomaško"
+ },
+ "keywords": [
+   "country data",
+   "compare countries",
+   "world statistics",
+   "population by country",
+   "GDP by country"
+ ]
+}
+</script>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "WebApplication",
+ "name": "WorldScope",
+ "url": "https://worldscope-countries.netlify.app/",
+ "applicationCategory": "DataVisualizationApplication",
+ "operatingSystem": "Any",
+ "description": "Interactive web app to explore and compare statistics for countries worldwide."
+}
+</script>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -214,6 +252,11 @@ body { font-size: 16px; min-width: 320px; }
   </style>
 </head>
 <body>
+
+  <div style="display:none">
+  <img src="worldscope-screenshot.png" 
+       alt="WorldScope country data explorer showing country statistics and comparisons">
+</div>
   <div id="root"></div>
 
   <script type="text/babel" src="src/hooks/useCountries.js"></script>
