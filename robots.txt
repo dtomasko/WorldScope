@@ -1,0 +1,8 @@
+# robots.txt for WorldScope
+# Allow all crawlers full access
+
+User-agent: *
+Disallow:
+
+# Sitemap
+Sitemap: https://worldscope-countries.netlify.app/sitemap.xml
